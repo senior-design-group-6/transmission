@@ -1,0 +1,23 @@
+[project]
+name = "transmission"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Blake Payne", email = "56892670+payne1778@users.noreply.github.com" },
+]
+requires-python = ">=3.13"
+dependencies = [
+    "cryptography>=50.0.2",
+    "numpy>=2.5.3",
+    "opencv-python>=5.0.0.93",
+    "py7zr>=1.1.3",
+    "pyserial>=3.5",
+]
+
+[project.scripts]
+transmission = "transmission.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
