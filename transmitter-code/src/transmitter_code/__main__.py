@@ -1,5 +1,5 @@
 def main() -> None:
-    print("Hello from transmission!")
+    print("Hello from transmitter-code!")
 
 
 if __name__ == "__main__":

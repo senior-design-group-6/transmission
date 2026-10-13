@@ -5,16 +5,16 @@ import os
 
 import py7zr  # For 7zip
 
-file_to_compress = r"C:\Users\jacob\Downloads\Limage"
-archive_name = r"C:\Users\jacob\Downloads\deathstarplans.7z"
+image_folder_to_compress = r"/home/ubuntu/Downloads/images"
+archive_name = r"/home/ubuntu/Downloads/deathstarplans.7z"
 
 # Check that the folder actually exists
-print("Folder exists:", os.path.exists(file_to_compress))
-print("Files in folder:", os.listdir(file_to_compress))
+print("Folder exists:", os.path.exists(image_folder_to_compress))
+print("Files in folder:", os.listdir(image_folder_to_compress))
 
 # Create the 7z archive
 with py7zr.SevenZipFile(archive_name, mode="w") as archive:
-    archive.writeall(file_to_compress, arcname="images")
+    archive.writeall(image_folder_to_compress, arcname="images")
 
 print(f"\nArchive created: {archive_name}")
 print(f"Archive size: {os.path.getsize(archive_name):,} bytes")
@@ -30,7 +30,7 @@ MAX_RETRIES = 15  # Give up on a packet after ten tries
 MAGIC = b"\xaa\x55"  # Marks the start of a packet with a two byte marker
 
 xbee1 = serial.Serial(
-    port="COM3", baudrate=115200, timeout=2
+    port="tty/USB0", baudrate=115200, timeout=2
 )  # timeout = how long to wait for an ACK. Make sure port is correct for device and baudrate matches other Xbee
 
 
@@ -65,7 +65,7 @@ def send_reliably(
     return False
 
 
-with open(r"C:\users\jacob\Downloads\deathstarplans.7z", "rb") as pics:
+with open(archive_name, "rb") as pics:
     pieces = []  # Addes packets to list
     while True:
         piece = pics.read(chunk_size)
@@ -78,7 +78,7 @@ print(f"Number of pieces: {len(pieces)}")
 # Finds MD5
 
 md5 = hashlib.md5()
-with open(r"C:\users\jacob\Downloads\deathstarplans.7z", "rb") as f:
+with open(archive_name, "rb") as f:
     for block in iter(lambda: f.read(65536), b""):
         md5.update(block)
 file_md5 = md5.digest()  # 16 bytes

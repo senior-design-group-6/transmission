@@ -1,8 +1,9 @@
 [project]
-name = "transmission"
+name = "receiver-code"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
+
 authors = [
     { name = "Blake Payne", email = "56892670+payne1778@users.noreply.github.com" },
 ]
@@ -16,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-transmission = "transmission.__main__:main"
+receiver-code = "receiver_code.__main__:main"
 
 [build-system]
 requires = ["uv_build>=0.12.23,<0.13.0"]

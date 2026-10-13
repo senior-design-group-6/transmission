@@ -1,17 +1,11 @@
 # transmission
 
-## How to run
+## Running Transmission Code
 
-### With `uv`
+### How to Run Transmitter Code
 
-```bash
-uv sync
-uv run python -m transmission
-```
+See how-to instructions in this [README.md](./transmitter-code/README.md)
 
-### With `python` + `pip`
+### How to Run Receiver Code
 
-```bash
-python -m pip install -r requirements.txt
-python -m transmission
-```
+See how-to instructions in this [README.md](./receiver-code/README.md)

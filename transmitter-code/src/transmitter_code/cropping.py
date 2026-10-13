@@ -107,7 +107,7 @@ def process_folder(input_dir, matched_dir, padding=1.3):
 
 if __name__ == "__main__":
     process_folder(
-        input_dir=r"C:\Users\danes\Desktop\Sample images team projects",
-        matched_dir="output/with_red_circle",
+        input_dir=r"/home/ubuntu/Downloads/images",
+        matched_dir=r"/home/ubuntu/Downloads/output/with_red_circle",
         padding=7.0,  # Adjust padding size here
     )
