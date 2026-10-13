@@ -15,3 +15,9 @@ uv run python -m receiver_code
 python -m pip install -r requirements.txt
 python -m receiver_code
 ```
+
+## How to Update `requirements.txt`
+
+```bash
+uv export --no-hashes --format requirements.txt > requirements.txt
+```
