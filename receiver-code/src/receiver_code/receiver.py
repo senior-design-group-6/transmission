@@ -6,7 +6,8 @@ import serial  # Uses Pyserial Library
 
 chunk_size = 230  # Chunk Size, any smaller slows down the transmission, any larger causes errors when I experimented with it.
 MAGIC = b"\xaa\x55"  # Marks the start of a packet with a two byte marker
-output_path = r"C:\Users\jacob\Downloads\receivedimage.7z"
+os.makedirs("Received", exist_ok=True) ## Output Folder
+output_path = os.path.join("Received", "receivedimages.7z")
 
 xbee2 = serial.Serial(
     port="COM6", baudrate=115200, timeout=20
@@ -150,7 +151,7 @@ import os
 
 import py7zr
 
-archive_name = r"C:\Users\jacob\Downloads\receivedimage.7z"
+archive_name = output_path
 os.makedirs("encryptedPics", exist_ok=True)
 extract_to = os.listdir("encryptedPics")
 
