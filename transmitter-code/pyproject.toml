@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Blake Payne", email = "56892670+payne1778@users.noreply.github.com" },
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "cryptography>=50.0.2",
     "numpy>=2.5.3",
