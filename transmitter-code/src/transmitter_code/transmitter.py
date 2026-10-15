@@ -5,7 +5,7 @@ import os
 
 import py7zr  # For 7zip
 
-image_folder_to_compress = r"/home/ubuntu/Downloads/images"
+image_folder_to_compress = r"/home/ubuntu/Downloads/images/encrypted_pics"
 archive_name = r"/home/ubuntu/Downloads/deathstarplans.7z"
 
 # Check that the folder actually exists
