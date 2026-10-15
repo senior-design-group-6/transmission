@@ -1,8 +1,5 @@
 def main() -> None:
-    print("Hello from receiver-code!")
-
-    # 1. Receive Images
-    # 2. Decrypt Images
+    exec(open("src/receiver_code/receiver.py").read())
 
 
 if __name__ == "__main__":
