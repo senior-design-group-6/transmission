@@ -13,7 +13,7 @@ MAX_RETRIES = 15  # Give up on a packet after ten tries
 MAGIC = b"\xaa\x55"  # Marks the start of a packet with a two byte marker
 
 xbee1 = serial.Serial(
-    port="tty/USB0", baudrate=115200, timeout=2
+    port="ttyUSB0", baudrate=115200, timeout=2
 )  # timeout = how long to wait for an ACK. Make sure port is correct for device and baudrate matches other Xbee
 
 
