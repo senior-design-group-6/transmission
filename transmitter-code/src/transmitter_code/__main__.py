@@ -1,4 +1,4 @@
-from .cropping import process_image_folder
+from .cropping import crop_images
 from .encrypt import encrypt_images
 from .transmitter import transmit_images
 
@@ -7,9 +7,9 @@ def main() -> None:
     print("Hello from transmitter-code!")
 
     # 1. Crop Images
-    process_image_folder(
-        input_dir=r"/home/ubuntu/Downloads/images",
-        output_dir=r"/home/ubuntu/Downloads/images/with_red_circle",
+    crop_images(
+        images_folder=r"/home/ubuntu/Downloads/images",
+        cropped_images_folder=r"/home/ubuntu/Downloads/images/with_red_circle",
         padding=7.0,  # Adjust padding size here
     )
 

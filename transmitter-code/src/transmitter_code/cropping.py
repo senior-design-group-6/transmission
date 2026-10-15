@@ -66,19 +66,19 @@ def crop_around_circle(image, x, y, r, padding=1.3):
     return image[y1:y2, x1:x2]
 
 
-def process_image_folder(input_dir, output_dir, padding=1.3):
+def crop_images(images_folder, cropped_images_folder, padding=1.3):
     """
     Processes every image. If a red circle is found anywhere, crops around it.
     If NOT found, falls back to center-cropping so all images process.
     """
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(cropped_images_folder, exist_ok=True)
     valid_exts = (".jpg", ".jpeg", ".png")
 
-    for filename in os.listdir(input_dir):
+    for filename in os.listdir(images_folder):
         if not filename.lower().endswith(valid_exts):
             continue
 
-        path = os.path.join(input_dir, filename)
+        path = os.path.join(images_folder, filename)
         image = cv2.imread(path)
 
         if image is None:
@@ -101,5 +101,5 @@ def process_image_folder(input_dir, output_dir, padding=1.3):
 
         # Crop and save
         cropped = crop_around_circle(image, x, y, r, padding=padding)
-        out_path = os.path.join(output_dir, filename)
+        out_path = os.path.join(cropped_images_folder, filename)
         cv2.imwrite(out_path, cropped)
