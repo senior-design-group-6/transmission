@@ -1,12 +1,17 @@
 # --- Receiver ---
+import hashlib
+import os
 import struct  # Allows raw bytes to be converted back and foth to regular numbers.
 import zlib  # crc 32 checksum calculations
 
+import py7zr  # Python 7Zip library
+import requests
 import serial  # Uses Pyserial Library
+from cryptography.fernet import Fernet
 
 chunk_size = 230  # Chunk Size, any smaller slows down the transmission, any larger causes errors when I experimented with it.
 MAGIC = b"\xaa\x55"  # Marks the start of a packet with a two byte marker
-os.makedirs("Received", exist_ok=True) ## Output Folder
+os.makedirs("Received", exist_ok=True)  ## Output Folder
 output_path = os.path.join("Received", "receivedimages.7z")
 
 xbee2 = serial.Serial(
@@ -89,10 +94,8 @@ with open(output_path, "wb") as f:  # Writes incoming file
         # seq > expected_seq shouldn't happen with stop-and-wait, so ignore it
 
 print(f"Done. Received {packet_num} packets, saved to {output_path}")
-# MD5 check
-#
-import hashlib
 
+### MD5 check
 end_seq = expected_seq  # sequence number of the end marker
 received_md5 = None
 
@@ -145,11 +148,7 @@ if received_md5 is not None:
 
 xbee2.close()
 
-# 7 Zip Unpacking
-
-import os
-
-import py7zr
+### 7 Zip Unpacking
 
 archive_name = output_path
 os.makedirs("encryptedPics", exist_ok=True)
@@ -169,12 +168,6 @@ print(f"Archive extracted to: {extract_to}")
 print("Files extracted:", os.listdir(extract_to))
 
 ### Decryption
-
-import hashlib
-import os
-
-import requests
-from cryptography.fernet import Fernet
 
 # Must be the exact same key as encrypt.py
 key = b"byUnClxHebyJjGArOKO55S8jHIak8bXtYngtKBxhLk8="
