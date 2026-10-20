@@ -151,8 +151,7 @@ xbee2.close()
 ### 7 Zip Unpacking
 
 archive_name = output_path
-os.makedirs("encryptedPics", exist_ok=True)
-extract_to = os.listdir("encryptedPics")
+extract_to = "encryptedPics"
 
 # Check that the archive exists
 print("Archive exists:", os.path.exists(archive_name))
