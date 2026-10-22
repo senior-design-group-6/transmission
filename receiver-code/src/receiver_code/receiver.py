@@ -8,6 +8,7 @@ import py7zr  # Python 7Zip library
 import requests
 import serial  # Uses Pyserial Library
 from cryptography.fernet import Fernet
+import shutil
 
 chunk_size = 230  # Chunk Size, any smaller slows down the transmission, any larger causes errors when I experimented with it.
 MAGIC = b"\xaa\x55"  # Marks the start of a packet with a two byte marker
@@ -153,18 +154,25 @@ xbee2.close()
 archive_name = output_path
 extract_to = "encryptedPics"
 
-# Check that the archive exists
 print("Archive exists:", os.path.exists(archive_name))
-
-# Create the destination folder if it doesn't exist
 os.makedirs(extract_to, exist_ok=True)
 
-# Extract the 7z archive
+# Extract to a temporary location first
+temp_dir = os.path.join(extract_to, "_temp_extract")
 with py7zr.SevenZipFile(archive_name, mode="r") as archive:
-    archive.extractall(path=extract_to)
+    archive.extractall(path=temp_dir)
+
+# Move the contents of images/ up into encryptedPics/
+inner_dir = os.path.join(temp_dir, "images")
+for name in os.listdir(inner_dir):
+    shutil.move(os.path.join(inner_dir, name), os.path.join(extract_to, name))
+
+# Clean up the temp folder
+shutil.rmtree(temp_dir)
 
 print(f"Archive extracted to: {extract_to}")
 print("Files extracted:", os.listdir(extract_to))
+
 
 ### Decryption
 
