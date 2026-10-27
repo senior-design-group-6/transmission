@@ -4,50 +4,82 @@ import cv2
 import numpy as np
 
 
-def find_red_circle(image, min_radius=10, max_radius=2000):
-    """
-    Looks for a red circle anywhere in the image using contour detection.
-    Returns (x, y, r) — center coordinates and radius — or None if no shape found.
-    """
-    # Slight blur to smooth out noise
-    blurred = cv2.GaussianBlur(image, (5, 5), 0)
+def find_red_circle(
+    image: np.ndarray,
+    min_radius: int = 10,
+    max_radius: int = 2000,
+    min_circularity: float = 0.65,
+) -> tuple[int, int, int] | None:
+    """Detect a red circle using HSV color filtering and contour analysis."""
 
-    # Convert to HSV color space
-    hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+    # Convert BGR to HSV.
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    # Slightly expanded HSV ranges to handle shadows and different shades of red
-    lower_red1 = np.array([0, 50, 50])
-    upper_red1 = np.array([10, 255, 255])
-    lower_red2 = np.array([170, 50, 50])
+    # Wider red ranges to accommodate color variation.
+    lower_red1 = np.array([0, 100, 100])
+    upper_red1 = np.array([12, 255, 255])
+
+    lower_red2 = np.array([168, 100, 100])
     upper_red2 = np.array([180, 255, 255])
 
     mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
     mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+
     red_mask = cv2.bitwise_or(mask1, mask2)
 
-    # Clean up the mask (remove small background specks, fill holes)
-    kernel = np.ones((5, 5), np.uint8)
+    # Remove noise and close small gaps.
+    kernel = np.ones((3, 3), np.uint8)
+
     red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_OPEN, kernel)
+
     red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_CLOSE, kernel)
 
-    # Find contours of the red shapes anywhere in the image
-    contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        red_mask,
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE,
+    )
 
-    if not contours:
-        return None  # No red shapes found
+    candidates = []
 
-    # Find the largest red contour in the image
-    largest_contour = max(contours, key=cv2.contourArea)
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        perimeter = cv2.arcLength(contour, True)
 
-    # Get the minimum enclosing circle around that red shape
-    (x, y), radius = cv2.minEnclosingCircle(largest_contour)
-    x, y, r = int(x), int(y), int(radius)
+        if area <= 0 or perimeter <= 0:
+            continue
 
-    # Filter out shapes that are too small or too big
-    if r < min_radius or r > max_radius:
+        # Reject contours that are not sufficiently circular.
+        circularity = 4 * np.pi * area / (perimeter**2)
+
+        if circularity < min_circularity:
+            continue
+
+        (x, y), radius = cv2.minEnclosingCircle(contour)
+
+        if not min_radius <= radius <= max_radius:
+            continue
+
+        # Reject contours whose filled area is too small
+        # relative to their enclosing circle.
+        circle_area = np.pi * radius**2
+
+        if circle_area <= 0:
+            continue
+
+        fill_ratio = area / circle_area
+
+        if fill_ratio < 0.55:
+            continue
+
+        candidates.append((circularity * area, int(x), int(y), int(radius)))
+
+    if not candidates:
         return None
 
-    return (x, y, r)
+    _, x, y, r = max(candidates, key=lambda candidate: candidate[0])
+
+    return x, y, r
 
 
 def crop_around_circle(image, x, y, r, padding=1.3):
@@ -95,9 +127,8 @@ def crop_images(images_folder, cropped_images_folder, padding=1.3):
             h, w = image.shape[:2]
             x, y = w // 2, h // 2
             r = min(w, h) // 4
-            print(
-                f"[FALLBACK] {filename}: no red circle found, center-cropping instead"
-            )
+            print(f"[FALLBACK] {filename}: no red circle found")
+            continue
 
         # Crop and save
         cropped = crop_around_circle(image, x, y, r, padding=padding)
