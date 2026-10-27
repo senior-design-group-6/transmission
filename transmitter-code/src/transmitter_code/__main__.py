@@ -10,7 +10,7 @@ def main() -> None:
     crop_images(
         images_folder=r"/home/ubuntu/Downloads/images",
         cropped_images_folder=r"/home/ubuntu/Downloads/images/with_red_circle",
-        padding=7.0,  # Adjust padding size here
+        padding=1.5,  # Adjust padding size here
     )
 
     # 2. Encrypt Images
