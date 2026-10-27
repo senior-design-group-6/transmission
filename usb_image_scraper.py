@@ -102,3 +102,11 @@ if __name__ == "__main__":
 
     except Exception as error:
         print(f"An error occurred: {error}")
+
+    import subprocess
+    import sys
+
+    subprocess.run(
+        [sys.executable, "-m", "transmitter_code"],
+        check=True,
+    )
