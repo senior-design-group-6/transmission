@@ -8,7 +8,7 @@ def main() -> None:
 
     # 1. Crop Images
     crop_images(
-        images_folder=r"/home/ubuntu/Downloads/images",
+        images_folder=r"/home/ubuntu/Downloads/images/original",
         cropped_images_folder=r"/home/ubuntu/Downloads/images/with_red_circle",
         padding=1.5,  # Adjust padding size here
     )
