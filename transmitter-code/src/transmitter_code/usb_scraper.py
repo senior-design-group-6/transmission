@@ -93,16 +93,3 @@ def pull_usb_images(output_folder):
     # Display the final results
     print(f"Finished! Copied {images_found} images.")
     print(f"Images saved in: {output_folder}")
-
-
-if __name__ == "__main__":
-    try:
-        # Start copying images
-        pull_usb_images("/home/ubuntu/Downloads/images/original")
-
-    except Exception as error:
-        print(f"An error occurred: {error}")
-
-    import runpy
-
-    runpy.run_module("transmitter_code", run_name="__main__")

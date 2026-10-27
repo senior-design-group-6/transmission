@@ -1,29 +1,42 @@
+from pathlib import Path
+
 from .cropping import crop_images
 from .encrypt import encrypt_images
 from .transmitter import transmit_images
+from .usb_scraper import pull_usb_images
 
 
 def main() -> None:
     print("Hello from transmitter-code!")
 
-    # 1. Crop Images
+    images_root = Path.home() / "Downloads" / "images"
+    original_dir = images_root / "original"
+    cropped_dir = images_root / "with_red_circle"
+    encrypted_dir = images_root / "encrypted_pics"
+
+    # 1. Pull Images from USB
+    pull_usb_images(output_folder=original_dir)
+
+    # 2. Crop Images
     crop_images(
-        images_folder=r"/home/ubuntu/Downloads/images/original",
-        cropped_images_folder=r"/home/ubuntu/Downloads/images/with_red_circle",
+        images_folder=original_dir,
+        cropped_images_folder=cropped_dir,
         padding=1.5,  # Adjust padding size here
     )
 
-    # 2. Encrypt Images
+    # 3. Encrypt Images
     encrypt_images(
-        encrypted_pics_path=r"/home/ubuntu/Downloads/images/encrypted_pics",
-        images_with_red_circle_path=r"/home/ubuntu/Downloads/images/with_red_circle",
+        images_with_red_circle_path=cropped_dir,
+        encrypted_pics_path=encrypted_dir,
     )
 
-    # 3. Transmit images
+    # 4. Transmit images
     transmit_images(
-        image_folder_to_compress=r"/home/ubuntu/Downloads/images/encrypted_pics",
-        image_archive_name=r"/home/ubuntu/Downloads/deathstarplans.7z",
+        image_folder_to_compress=encrypted_dir,
+        image_archive_name=images_root / "deathstarplans.7z",
     )
+
+    print("Transmission Complete!")
 
 
 if __name__ == "__main__":
