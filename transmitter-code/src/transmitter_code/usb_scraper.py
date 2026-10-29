@@ -61,7 +61,13 @@ def pull_usb_images(output_folder):
             folders[:] = [
                 folder
                 for folder in folders
-                if folder not in ("System Volume Information", "$RECYCLE.BIN")
+                if folder
+                not in (
+                    "System Volume Information",
+                    "$RECYCLE.BIN",
+                    "FOUND.000",
+                    "cropped",
+                )
             ]
 
             # Find supported image files
