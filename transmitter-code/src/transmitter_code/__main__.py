@@ -21,7 +21,7 @@ def main() -> None:
     crop_images(
         images_folder=original_dir,
         cropped_images_folder=cropped_dir,
-        padding=1.5,  # Adjust padding size here
+        padding=1.3,  # Adjust padding size here
     )
 
     # 3. Encrypt Images
