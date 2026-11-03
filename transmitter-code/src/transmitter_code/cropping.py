@@ -6,80 +6,122 @@ import numpy as np
 
 def find_red_circle(
     image: np.ndarray,
-    min_radius: int = 10,
-    max_radius: int = 2000,
-    min_circularity: float = 0.65,
+    min_radius: int = 15,
+    max_radius: int = 35,
+    min_circularity: float = 0.80,
 ) -> tuple[int, int, int] | None:
-    """Detect a red circle using HSV color filtering and contour analysis."""
+    """
+    Detect a thin red circular outline using contour hierarchy.
 
-    # Convert BGR to HSV.
+    Specifically targets red ring annotations rather than
+    filled red objects, glowing lights, or red image details.
+
+    Returns:
+        (center_x, center_y, radius), or None.
+    """
+
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    # Wider red ranges to accommodate color variation.
-    lower_red1 = np.array([0, 100, 100])
-    upper_red1 = np.array([12, 255, 255])
+    # Isolate strongly saturated, bright-red pixels.
+    mask1 = cv2.inRange(
+        hsv,
+        np.array([0, 150, 130]),
+        np.array([10, 255, 255]),
+    )
 
-    lower_red2 = np.array([168, 100, 100])
-    upper_red2 = np.array([180, 255, 255])
-
-    mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
-    mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+    mask2 = cv2.inRange(
+        hsv,
+        np.array([170, 150, 130]),
+        np.array([179, 255, 255]),
+    )
 
     red_mask = cv2.bitwise_or(mask1, mask2)
 
-    # Remove noise and close small gaps.
-    kernel = np.ones((3, 3), np.uint8)
-
-    red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_OPEN, kernel)
-
-    red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_CLOSE, kernel)
-
-    contours, _ = cv2.findContours(
+    # RETR_TREE preserves the relationship between
+    # the outer and inner boundaries of a red ring.
+    contours, hierarchy = cv2.findContours(
         red_mask,
-        cv2.RETR_EXTERNAL,
+        cv2.RETR_TREE,
         cv2.CHAIN_APPROX_SIMPLE,
     )
 
+    if hierarchy is None:
+        return None
+
+    hierarchy = hierarchy[0]
     candidates = []
 
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        perimeter = cv2.arcLength(contour, True)
-
-        if area <= 0 or perimeter <= 0:
+    for i, outer in enumerate(contours):
+        # Only consider top-level contours.
+        if hierarchy[i][3] != -1:
             continue
 
-        # Reject contours that are not sufficiently circular.
-        circularity = 4 * np.pi * area / (perimeter**2)
+        outer_area = cv2.contourArea(outer)
+        outer_perimeter = cv2.arcLength(outer, True)
 
-        if circularity < min_circularity:
+        if outer_area <= 0 or outer_perimeter <= 0:
             continue
 
-        (x, y), radius = cv2.minEnclosingCircle(contour)
+        # Check the outer contour's circularity.
+        outer_circularity = 4 * np.pi * outer_area / outer_perimeter**2
 
-        if not min_radius <= radius <= max_radius:
+        if outer_circularity < min_circularity:
             continue
 
-        # Reject contours whose filled area is too small
-        # relative to their enclosing circle.
-        circle_area = np.pi * radius**2
+        (x, y), outer_radius = cv2.minEnclosingCircle(outer)
 
-        if circle_area <= 0:
+        if not min_radius <= outer_radius <= max_radius:
             continue
 
-        fill_ratio = area / circle_area
+        # A ring must contain an inner contour (hole).
+        child_index = hierarchy[i][2]
 
-        if fill_ratio < 0.55:
-            continue
+        while child_index != -1:
+            inner = contours[child_index]
 
-        candidates.append((circularity * area, int(x), int(y), int(radius)))
+            inner_area = cv2.contourArea(inner)
+            inner_perimeter = cv2.arcLength(inner, True)
+
+            if inner_area > 0 and inner_perimeter > 0:
+                inner_circularity = 4 * np.pi * inner_area / inner_perimeter**2
+
+                (ix, iy), inner_radius = cv2.minEnclosingCircle(inner)
+
+                # Inner and outer circles must be concentric.
+                center_distance = np.hypot(x - ix, y - iy)
+
+                # The ring should have a thin, consistent border.
+                radius_ratio = inner_radius / outer_radius
+
+                if (
+                    inner_circularity >= min_circularity
+                    and center_distance <= 2.0
+                    and 0.70 <= radius_ratio <= 0.95
+                ):
+                    score = (
+                        outer_circularity
+                        * inner_circularity
+                        * (1 - center_distance / outer_radius)
+                    )
+
+                    candidates.append(
+                        (
+                            score,
+                            round(x),
+                            round(y),
+                            round(outer_radius),
+                        )
+                    )
+
+            # Check additional child contours, if any.
+            child_index = hierarchy[child_index][0]
 
     if not candidates:
         return None
 
-    _, x, y, r = max(candidates, key=lambda candidate: candidate[0])
+    _, x, y, radius = max(candidates, key=lambda c: c[0])
 
-    return x, y, r
+    return x, y, radius
 
 
 def crop_around_circle(image, x, y, r, padding=1.3):
@@ -123,11 +165,7 @@ def crop_images(images_folder, cropped_images_folder, padding=1.3):
             x, y, r = result
             print(f"[MATCH]    {filename}: red circle found at ({x},{y}), radius {r}")
         else:
-            # Fallback if nothing red is detected
-            h, w = image.shape[:2]
-            x, y = w // 2, h // 2
-            r = min(w, h) // 4
-            print(f"[FALLBACK] {filename}: no red circle found")
+            print(f"[REJECTED] {filename}: no red marker found")
             continue
 
         # Crop and save
